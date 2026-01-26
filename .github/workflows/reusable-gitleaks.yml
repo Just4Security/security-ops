@@ -1,0 +1,59 @@
+name: Shared Gitleaks Scan
+
+on:
+  workflow_call:
+    # 允许调用方传入参数（可选）
+    inputs:
+      config_path:
+        required: false
+        type: string
+        default: "./gitleaks.toml"
+        description: "Path to gitleaks config file"
+    secrets:
+      # 如果需要访问私有仓库下载配置，可能需要 Token
+      ORG_PAT:
+        required: false
+
+jobs:
+  gitleaks:
+    name: Gitleaks Scan
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Source Code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0 # Gitleaks 需要完整的 git 历史
+
+      - name: Checkout Security Config
+        uses: actions/checkout@v4
+        with:
+          repository: your-org-name/security-ops # 替换为你的组织名/仓库名
+          path: security-ops-config
+          # 如果 security-ops 是私有仓库，需要在这里配置 token
+          # token: ${{ secrets.ORG_PAT }}
+
+      - name: Run Gitleaks
+        id: gitleaks # 添加 ID 以便后续步骤引用状态
+        uses: gitleaks/gitleaks-action@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          # 指向刚才 checkout 下来的统一配置文件
+          config-path: security-ops-config/gitleaks.toml
+          # 发现泄露时立即报错
+          break-status: true 
+          verbose: true
+
+      # 新增：当扫描失败时，在 Actions 摘要中显示具体的豁免指引
+      - name: Print Exemption Instructions
+        if: failure() && steps.gitleaks.outcome == 'failure'
+        run: |
+          echo "::error title=Gitleaks Scan Failed::发现潜在的敏感信息泄露！请检查代码。"
+          echo "::notice title=如何处理误报 (False Positive)?::如果确认是误报，请在代码中添加豁免注释："
+          echo "::notice::-------------------------------------------------------"
+          echo "::notice::方法 1 (单行): const token = 'fake'; // gitleaks:allow"
+          echo "::notice::方法 2 (代码块):"
+          echo "::notice::# gitleaks:allow-start"
+          echo "::notice::api_key = 'test-key'"
+          echo "::notice::# gitleaks:allow-stop"
+          echo "::notice::-------------------------------------------------------"
