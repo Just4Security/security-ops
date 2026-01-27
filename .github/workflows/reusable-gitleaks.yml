@@ -40,7 +40,7 @@ jobs:
       - name: Checkout Security Config
         uses: actions/checkout@v4
         with:
-          repository: your-org-name/security-ops # 替换为你的组织名/仓库名
+          repository: Just4Security/security-ops # 替换为你的组织名/仓库名
           path: security-ops-config
           # 如果 security-ops 是私有仓库，需要在这里配置 token
           # token: ${{ secrets.ORG_PAT }}
