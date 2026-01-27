@@ -1,9 +1,19 @@
 name: Shared Gitleaks Scan
 
 on:
-  # 为了能在 Organization Rulesets 中被选中，必须包含 pull_request 或 merge_group 触发器
+  # 1. 代码推送到任何分支时触发（最常用的实时拦截）
+  push:
+    branches: [ "**" ] 
+  
+  # 2. 提交 Pull Request 时触发（防止合并到主分支）
   pull_request:
+  
+  # 3. 合并队列触发（如果使用了 GitHub Merge Queue）
   merge_group:
+
+  # 4. 新增：允许手动点击按钮触发（用于安全审计或测试新规则）
+  workflow_dispatch:
+
   workflow_call:
     # 允许调用方传入参数（可选）
     inputs:
