@@ -1,6 +1,9 @@
 name: Shared Gitleaks Scan
 
 on:
+  # 为了能在 Organization Rulesets 中被选中，必须包含 pull_request 或 merge_group 触发器
+  pull_request:
+  merge_group:
   workflow_call:
     # 允许调用方传入参数（可选）
     inputs:
