@@ -57,15 +57,32 @@ jobs:
           verbose: true
 
       # 新增：当扫描失败时，在 Actions 摘要中显示具体的豁免指引
-      - name: Print Exemption Instructions
-        if: failure() && steps.gitleaks.outcome == 'failure'
+      - name: Report Gitleaks Failure
+        if: failure() # 仅在扫描失败时运行
         run: |
-          echo "::error title=Gitleaks Scan Failed::发现潜在的敏感信息泄露！请检查代码。"
-          echo "::notice title=如何处理误报 (False Positive)?::如果确认是误报，请在代码中添加豁免注释："
-          echo "::notice::-------------------------------------------------------"
-          echo "::notice::方法 1 (单行): const token = 'fake'; // gitleaks:allow"
-          echo "::notice::方法 2 (代码块):"
-          echo "::notice::# gitleaks:allow-start"
-          echo "::notice::api_key = 'test-key'"
-          echo "::notice::# gitleaks:allow-stop"
-          echo "::notice::-------------------------------------------------------"
+          # 仅保留这一行 Error Annotation，用于在文件变动处高亮提醒
+          echo "::error title=Gitleaks Scan Failed::发现潜在的敏感信息泄露！请检查下方 Summary 获取修复指南。"
+          
+          # 将详细说明输出到 Job Summary (支持 Markdown)
+          cat <<EOF >> $GITHUB_STEP_SUMMARY
+          ## 🚨 Gitleaks Scan Failed
+          发现潜在的敏感信息泄露！请检查代码。
+          
+          **重要提示：** 一旦确认发生敏感信息泄露，应默认该信息已被公开访问。请务必立即采取止损措施，包括但不限于轮转密钥和吊销证书。
+
+          ### 如何处理误报 (False Positive)?
+          如果确认是误报，请在代码中添加豁免注释：
+
+          **方法 1 (单行)：**
+          \`\`\`javascript
+          const token = 'fake'; // gitleaks:allow
+          \`\`\`
+
+          **方法 2 (代码块)：**
+          \`\`\`python
+          # gitleaks:allow-start
+          api_key = 'test-key'
+          # gitleaks:allow-stop
+          \`\`\`
+          EOF
+
