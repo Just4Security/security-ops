@@ -51,7 +51,7 @@ jobs:
           GITLEAKS_LICENSE: ${{ secrets.GITLEAKS_LICENSE }} 
         with:
           # 指向刚才 checkout 下来的统一配置文件
-          config-path: security-ops-config/gitleaks.toml
+          config-path: security-ops/gitleaks.toml
           # 发现泄露时立即报错
           break-status: true 
           verbose: true
@@ -61,7 +61,7 @@ jobs:
         if: failure() # 仅在扫描失败时运行
         run: |
           # 仅保留这一行 Error Annotation，用于在文件变动处高亮提醒
-          echo "::error title=Gitleaks Scan Failed::发现潜在的敏感信息泄露！请检查下方 Summary 获取修复指南。"
+          echo "::error title=Gitleaks Scan Failed::发现潜在的敏感信息泄露！"
           
           # 将详细说明输出到 Job Summary (支持 Markdown)
           cat <<EOF >> $GITHUB_STEP_SUMMARY
